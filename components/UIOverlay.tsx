@@ -18,7 +18,7 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ gameCtx }) => {
 
   if (gameState === GameState.START) {
     return (
-      <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-sm text-center p-6">
+      <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm text-center p-6 transition-colors duration-500">
         <h1 className="text-4xl md:text-6xl font-retro text-yellow-400 mb-8 animate-pulse text-shadow-glow">
           PAC-FOLIO
         </h1>
