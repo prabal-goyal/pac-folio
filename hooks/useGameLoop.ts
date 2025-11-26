@@ -15,7 +15,13 @@ export const useGameLoop = (
   useEffect(() => {
     const animate = (time: number) => {
       if (previousTimeRef.current !== undefined) {
-        const deltaTime = time - previousTimeRef.current;
+        // Calculate delta time
+        let deltaTime = time - previousTimeRef.current;
+        
+        // Cap delta time to ~60ms (approx 15fps) to prevent physics explosions 
+        // if the tab was backgrounded or the system lagged significantly.
+        if (deltaTime > 64) deltaTime = 64;
+
         callbackRef.current(deltaTime);
       }
       previousTimeRef.current = time;

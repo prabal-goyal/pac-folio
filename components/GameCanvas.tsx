@@ -487,6 +487,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
   useEffect(() => {
     const handleResize = () => {
       if (containerRef.current && canvasRef.current) {
+        // Set actual canvas size to match display size
         canvasRef.current.width = containerRef.current.clientWidth;
         canvasRef.current.height = containerRef.current.clientHeight;
         // Trigger one draw immediately on resize
@@ -500,7 +501,11 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
 
   return (
     <div ref={containerRef} className="w-full h-full relative overflow-hidden bg-gray-950">
-      <canvas ref={canvasRef} className="block" />
+      <canvas 
+        ref={canvasRef} 
+        className="block" 
+        style={{ width: '100%', height: '100%' }}
+      />
       {/* Mobile Controls Overlay */}
       <div className="absolute bottom-8 right-8 md:hidden flex flex-col gap-2 z-20 opacity-50 hover:opacity-100 transition-opacity">
          <div className="flex justify-center">
