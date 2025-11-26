@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import { useGameLoop } from '../hooks/useGameLoop';
 import { GameContextType, GameState, TileType, Player, Position, Ghost } from '../types';
 import { 
@@ -83,7 +83,12 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
       }));
       
       // Force a redraw
-      draw();
+      if (canvasRef.current && containerRef.current) {
+         // Ensure size is correct before drawing
+         canvasRef.current.width = containerRef.current.clientWidth;
+         canvasRef.current.height = containerRef.current.clientHeight;
+         draw();
+      }
     }
   }, [gameCtx.gameState]);
 
@@ -489,7 +494,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
       }
     };
     window.addEventListener('resize', handleResize);
-    handleResize();
+    handleResize(); // Initial resize
     return () => window.removeEventListener('resize', handleResize);
   }, [draw]);
 

@@ -44,7 +44,9 @@ function App() {
 
   return (
     <div className="w-screen h-screen bg-black overflow-hidden flex flex-col relative">
-      <GameCanvas gameCtx={gameCtx} />
+      <div className="flex-1 w-full relative">
+        <GameCanvas gameCtx={gameCtx} />
+      </div>
       <UIOverlay gameCtx={gameCtx} />
       
       {/* Background Grid decorative effect for empty space */}

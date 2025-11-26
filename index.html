@@ -8,7 +8,10 @@
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;600;700&display=swap');
       
-      body {
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
         background-color: #050505;
         color: #ffffff;
         font-family: 'Rajdhani', sans-serif;
@@ -38,6 +41,7 @@
   <script type="importmap">
 {
   "imports": {
+    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.0/client",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "react": "https://aistudiocdn.com/react@^19.2.0",
@@ -47,6 +51,6 @@
 </script>
 </head>
   <body>
-    <div id="root"></div>
+    <div id="root" class="h-full w-full"></div>
   </body>
 </html>
