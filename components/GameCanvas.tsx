@@ -1,7 +1,16 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useGameLoop } from '../hooks/useGameLoop';
-import { GameContextType, GameState, TileType, Player, Position } from '../types';
-import { MAZE_LAYOUT, TILE_SIZE, COLORS, PLAYER_SPEED, CONTENT_DATA } from '../constants';
+import { GameContextType, GameState, TileType, Player, Position, Ghost } from '../types';
+import { 
+  MAZE_LAYOUT, 
+  TILE_SIZE, 
+  COLORS, 
+  PLAYER_SPEED, 
+  PLAYER_START_GRID,
+  CONTENT_DATA,
+  GHOST_CONFIG,
+  GHOST_SPEED
+} from '../constants';
 
 interface GameCanvasProps {
   gameCtx: GameContextType;
@@ -13,13 +22,30 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
   
   // Game State Refs (Use refs for game loop performance to avoid re-renders)
   const playerRef = useRef<Player>({
-    pos: { x: TILE_SIZE * 10 + TILE_SIZE / 2, y: TILE_SIZE * 7 + TILE_SIZE / 2 }, // Center
+    pos: { 
+      x: TILE_SIZE * PLAYER_START_GRID.c + TILE_SIZE / 2, 
+      y: TILE_SIZE * PLAYER_START_GRID.r + TILE_SIZE / 2 
+    }, 
     velocity: { x: 0, y: 0 },
     radius: TILE_SIZE * 0.4,
     speed: PLAYER_SPEED,
     direction: 'NONE',
     nextDirection: 'NONE'
   });
+
+  // Initialize Ghosts
+  const ghostsRef = useRef<Ghost[]>(
+    GHOST_CONFIG.map(cfg => ({
+      id: cfg.id,
+      color: cfg.color,
+      speed: GHOST_SPEED,
+      direction: 'RIGHT', // Initial direction
+      pos: {
+        x: TILE_SIZE * cfg.startGrid.c + TILE_SIZE / 2,
+        y: TILE_SIZE * cfg.startGrid.r + TILE_SIZE / 2
+      }
+    }))
+  );
   
   // Create a mutable copy of the maze for dot collection
   const mazeRef = useRef<number[][]>(JSON.parse(JSON.stringify(MAZE_LAYOUT)));
@@ -76,7 +102,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
     if (r < 0 || r >= mazeRef.current.length || c < 0 || c >= mazeRef.current[0].length) return true;
     const tile = mazeRef.current[r][c];
     if (tile === TileType.PORTAL) {
-      // Portal acts as wall until unlocked? Or let them pass to win
+      // Portal acts as wall until unlocked
       return !gameCtx.allItemsCollected; 
     }
     return tile === TileType.WALL;
@@ -92,13 +118,33 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
     return Math.floor(pos / TILE_SIZE) * TILE_SIZE + TILE_SIZE / 2;
   };
 
-  const canMove = (direction: string, pos: Position) => {
+  const resetPositions = () => {
+    // Reset Player
+    playerRef.current.pos = {
+      x: TILE_SIZE * PLAYER_START_GRID.c + TILE_SIZE / 2, 
+      y: TILE_SIZE * PLAYER_START_GRID.r + TILE_SIZE / 2 
+    };
+    playerRef.current.direction = 'NONE';
+    playerRef.current.nextDirection = 'NONE';
+
+    // Reset Ghosts
+    ghostsRef.current.forEach((ghost, idx) => {
+      const cfg = GHOST_CONFIG[idx];
+      ghost.pos = {
+        x: TILE_SIZE * cfg.startGrid.c + TILE_SIZE / 2,
+        y: TILE_SIZE * cfg.startGrid.r + TILE_SIZE / 2
+      };
+      ghost.direction = 'RIGHT'; // Or random
+    });
+  };
+
+  const canMove = (direction: string, pos: Position, isGhost = false) => {
     const { c, r } = getTileAt(pos.x, pos.y);
     
     // Check strict center alignment for turns
     const centerX = c * TILE_SIZE + TILE_SIZE / 2;
     const centerY = r * TILE_SIZE + TILE_SIZE / 2;
-    const tolerance = 4; // Tolerance for "close enough to center"
+    const tolerance = 4; 
 
     // If trying to turn perpendicular, we must be near center of tile
     const distX = Math.abs(pos.x - centerX);
@@ -115,12 +161,18 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
     if (direction === 'UP') nextR--;
     if (direction === 'DOWN') nextR++;
 
+    // Ghosts treat Portal as Wall always
+    if (isGhost) {
+      if (mazeRef.current[nextR]?.[nextC] === TileType.PORTAL) return false;
+    }
+
     return !isWall(nextC, nextR);
   };
 
   const update = useCallback((_dt: number) => {
     if (gameCtx.gameState !== GameState.PLAYING) return;
 
+    // --- PLAYER UPDATE ---
     const p = playerRef.current;
 
     // 1. Try to switch to nextDirection
@@ -134,7 +186,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
       }
     }
 
-    // 2. Move
+    // 2. Move Player
     let dx = 0;
     let dy = 0;
     if (p.direction === 'UP') dy = -p.speed;
@@ -143,18 +195,14 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
     if (p.direction === 'RIGHT') dx = p.speed;
 
     // 3. Wall Collision (Look ahead)
-    // Simple center point collision check usually enough for Pacman if we snap
-    // But let's check edge of radius
     const nextX = p.pos.x + dx;
     const nextY = p.pos.y + dy;
     
-    // Check tile ahead
+    // Check tile ahead edge
     const { c, r } = getTileAt(nextX + (dx ? Math.sign(dx) * p.radius : 0), nextY + (dy ? Math.sign(dy) * p.radius : 0));
     
     if (isWall(c, r)) {
-      // Stop
       p.velocity = { x: 0, y: 0 };
-      // Align to center of current tile
       const currentTile = getTileAt(p.pos.x, p.pos.y);
       if (dx !== 0) p.pos.x = currentTile.c * TILE_SIZE + TILE_SIZE / 2;
       if (dy !== 0) p.pos.y = currentTile.r * TILE_SIZE + TILE_SIZE / 2;
@@ -163,17 +211,70 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
       p.pos.y += dy;
     }
 
-    // 4. Wrap Around (optional, but good for map edges)
+    // 4. Wrap Around 
     const mapWidth = mazeRef.current[0].length * TILE_SIZE;
     if (p.pos.x < 0) p.pos.x = mapWidth;
     if (p.pos.x > mapWidth) p.pos.x = 0;
 
-    // 5. Collectibles
+
+    // --- GHOST UPDATE ---
+    ghostsRef.current.forEach(g => {
+      // Check if ghost is at center of tile (approx) to make a decision
+      const tileCenter = {
+        x: Math.floor(g.pos.x / TILE_SIZE) * TILE_SIZE + TILE_SIZE / 2,
+        y: Math.floor(g.pos.y / TILE_SIZE) * TILE_SIZE + TILE_SIZE / 2
+      };
+      
+      const distToCenter = Math.hypot(g.pos.x - tileCenter.x, g.pos.y - tileCenter.y);
+
+      if (distToCenter < g.speed) {
+        // Snap to center to turn cleanly
+        g.pos.x = tileCenter.x;
+        g.pos.y = tileCenter.y;
+
+        // Determine possible directions
+        const directions: Array<'UP'|'DOWN'|'LEFT'|'RIGHT'> = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
+        const validDirs = directions.filter(d => canMove(d, g.pos, true));
+        
+        // Don't reverse unless stuck
+        const opposite = { UP: 'DOWN', DOWN: 'UP', LEFT: 'RIGHT', RIGHT: 'LEFT' };
+        const nonReverseDirs = validDirs.filter(d => d !== opposite[g.direction]);
+        
+        if (nonReverseDirs.length > 0) {
+          // 20% chance to turn if possible, otherwise keep going (unless hit wall)
+          // Simple Patrol: Pick random valid direction
+          g.direction = nonReverseDirs[Math.floor(Math.random() * nonReverseDirs.length)];
+        } else if (validDirs.length > 0) {
+           // Dead end, must reverse
+           g.direction = validDirs[0];
+        }
+      }
+
+      // Move Ghost
+      let gx = 0, gy = 0;
+      if (g.direction === 'UP') gy = -g.speed;
+      if (g.direction === 'DOWN') gy = g.speed;
+      if (g.direction === 'LEFT') gx = -g.speed;
+      if (g.direction === 'RIGHT') gx = g.speed;
+      
+      g.pos.x += gx;
+      g.pos.y += gy;
+
+      // Ghost Collision with Player
+      const distToPlayer = Math.hypot(p.pos.x - g.pos.x, p.pos.y - g.pos.y);
+      if (distToPlayer < (p.radius + 12)) { // 12 approx ghost radius
+         gameCtx.addScore(-500); // Penalty
+         resetPositions();
+         // Could trigger a brief "Ouch" state here
+      }
+    });
+
+
+    // --- COLLECTIBLES ---
     const tilePos = getTileAt(p.pos.x, p.pos.y);
     const tileVal = mazeRef.current[tilePos.r]?.[tilePos.c];
 
     if (tileVal && tileVal !== TileType.WALL && tileVal !== TileType.EMPTY) {
-      
       // Hit Portal
       if (tileVal === TileType.PORTAL && gameCtx.allItemsCollected) {
         gameCtx.setGameState(GameState.GAMEOVER);
@@ -191,23 +292,18 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
         mazeRef.current[tilePos.r][tilePos.c] = TileType.EMPTY;
         gameCtx.addScore(100);
         
-        // Find content
         let category = 'SKILL';
         if (tileVal === TileType.POWER_PROJECT) category = 'PROJECT';
         if (tileVal === TileType.POWER_EXP) category = 'EXPERIENCE';
         
-        // Find next item of this category from queue
         const itemIndex = contentQueueRef.current.findIndex(i => i.category === category);
         
         if (itemIndex >= 0) {
           const item = contentQueueRef.current[itemIndex];
-          // Remove from queue
           contentQueueRef.current.splice(itemIndex, 1);
-          // Show Modal
           gameCtx.setActiveModal(item);
           gameCtx.markCollected(item.id);
         } else {
-           // Fallback if no specific content left, just generic msg
            gameCtx.setActiveModal({
              id: 'bonus',
              title: 'Bonus Data',
@@ -232,9 +328,6 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
 
     // Save Translation
     ctx.save();
-    
-    // Camera follow (optional, for now lets fit screen or center)
-    // For portfolio simple view, let's just center the maze in canvas
     const mapW = mazeRef.current[0].length * TILE_SIZE;
     const mapH = mazeRef.current.length * TILE_SIZE;
     const offsetX = (canvas.width - mapW) / 2;
@@ -263,7 +356,6 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
           ctx.beginPath();
           ctx.arc(x + TILE_SIZE/2, y + TILE_SIZE/2, 8, 0, Math.PI * 2);
           ctx.fill();
-          // Glow
           ctx.shadowBlur = 15;
           ctx.shadowColor = COLORS.SKILL;
         } else if (tile === TileType.POWER_PROJECT) {
@@ -303,24 +395,54 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
     const p = playerRef.current;
     ctx.fillStyle = COLORS.PACMAN;
     ctx.beginPath();
-    
-    // Simple Mouth Animation based on position or time
     const mouthOpen = Math.abs(Math.sin(Date.now() / 100)) * 0.2 * Math.PI;
-    
-    // Rotate context to direction
     let angle = 0;
     if (p.direction === 'DOWN') angle = Math.PI / 2;
     if (p.direction === 'LEFT') angle = Math.PI;
     if (p.direction === 'UP') angle = -Math.PI / 2;
 
+    ctx.save();
     ctx.translate(p.pos.x, p.pos.y);
     ctx.rotate(angle);
     ctx.arc(0, 0, p.radius, mouthOpen, Math.PI * 2 - mouthOpen);
     ctx.lineTo(0, 0);
     ctx.fill();
+    ctx.restore();
+
+    // Draw Ghosts
+    ghostsRef.current.forEach(g => {
+      ctx.fillStyle = g.color;
+      ctx.beginPath();
+      // Dome
+      ctx.arc(g.pos.x, g.pos.y, 12, Math.PI, 0);
+      // Feet
+      ctx.lineTo(g.pos.x + 12, g.pos.y + 12);
+      ctx.lineTo(g.pos.x - 12, g.pos.y + 12);
+      ctx.fill();
+      
+      // Eyes
+      ctx.fillStyle = 'white';
+      ctx.beginPath();
+      ctx.arc(g.pos.x - 4, g.pos.y - 4, 3, 0, Math.PI * 2);
+      ctx.arc(g.pos.x + 4, g.pos.y - 4, 3, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = 'blue';
+      ctx.beginPath();
+      // Pupils point to direction?
+      let px = 0, py = 0;
+      if (g.direction === 'UP') py = -1;
+      if (g.direction === 'DOWN') py = 1;
+      if (g.direction === 'LEFT') px = -1;
+      if (g.direction === 'RIGHT') px = 1;
+      
+      ctx.arc(g.pos.x - 4 + px, g.pos.y - 4 + py, 1.5, 0, Math.PI * 2);
+      ctx.arc(g.pos.x + 4 + px, g.pos.y - 4 + py, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    });
 
     ctx.restore();
-  }, [gameCtx.allItemsCollected]); // Re-create draw function if win state changes? No, deps mainly for linter
+  }, [gameCtx.allItemsCollected]); 
 
   useGameLoop((dt) => {
     update(dt);
@@ -333,7 +455,6 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
       if (containerRef.current && canvasRef.current) {
         canvasRef.current.width = containerRef.current.clientWidth;
         canvasRef.current.height = containerRef.current.clientHeight;
-        // Trigger a redraw
         draw();
       }
     };

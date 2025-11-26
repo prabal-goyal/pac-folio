@@ -2,6 +2,15 @@ import { TileType, ContentItem } from './types';
 
 export const TILE_SIZE = 32; // Pixels per grid cell
 export const PLAYER_SPEED = 3;
+export const PLAYER_START_GRID = { c: 10, r: 7 }; // Center of the map
+
+export const GHOST_SPEED = 2; // Slightly slower than player
+export const GHOST_CONFIG = [
+  { id: 1, color: '#ef4444', startGrid: { c: 1, r: 1 } },   // Red - Top Left
+  { id: 2, color: '#06b6d4', startGrid: { c: 19, r: 1 } },  // Cyan - Top Right
+  { id: 3, color: '#f472b6', startGrid: { c: 1, r: 13 } },  // Pink - Bottom Left
+  { id: 4, color: '#f97316', startGrid: { c: 19, r: 13 } }  // Orange - Bottom Right
+];
 
 // A 21x15 Grid. 
 // 1 = Wall, 0 = Empty (Path), 2 = Dot

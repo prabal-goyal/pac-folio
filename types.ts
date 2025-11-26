@@ -29,6 +29,14 @@ export interface Player {
   nextDirection: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'NONE';
 }
 
+export interface Ghost {
+  id: number;
+  pos: Position;
+  color: string;
+  speed: number;
+  direction: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
+}
+
 export interface ContentItem {
   id: string;
   title: string;
