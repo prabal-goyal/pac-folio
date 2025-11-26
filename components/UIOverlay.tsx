@@ -7,11 +7,11 @@ interface UIOverlayProps {
 }
 
 const UIOverlay: React.FC<UIOverlayProps> = ({ gameCtx }) => {
-  const { 
-    gameState, 
-    setGameState, 
-    score, 
-    activeModal, 
+  const {
+    gameState,
+    setGameState,
+    score,
+    activeModal,
     setActiveModal,
     resetGame
   } = gameCtx;
@@ -23,7 +23,7 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ gameCtx }) => {
           PAC-FOLIO
         </h1>
         <p className="text-gray-300 mb-8 max-w-md text-lg">
-          Navigate the maze to unlock my skills, experience, and projects. 
+          Navigate the maze to unlock my skills, experience, and projects.
           <br /><br />
           <span className="text-blue-400 font-bold">WASD / Arrows</span> to move.
           <br />
@@ -51,27 +51,27 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ gameCtx }) => {
           <p className="text-gray-300 text-center mb-8">
             You've explored my entire portfolio. Let's build something amazing together.
           </p>
-          
+
           <form className="space-y-4 mb-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input 
-                type="text" 
-                placeholder="Name" 
+              <input
+                type="text"
+                placeholder="Name"
                 className="bg-slate-800 border border-slate-700 p-3 rounded text-white focus:border-cyan-500 outline-none transition-colors"
               />
-              <input 
-                type="email" 
-                placeholder="Email" 
+              <input
+                type="email"
+                placeholder="Email"
                 className="bg-slate-800 border border-slate-700 p-3 rounded text-white focus:border-cyan-500 outline-none transition-colors"
               />
             </div>
-            <textarea 
-              rows={4} 
-              placeholder="Message" 
+            <textarea
+              rows={4}
+              placeholder="Message"
               className="w-full bg-slate-800 border border-slate-700 p-3 rounded text-white focus:border-cyan-500 outline-none transition-colors"
             ></textarea>
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="w-full py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded transition-colors"
             >
               SEND TRANSMISSION
@@ -79,9 +79,9 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ gameCtx }) => {
           </form>
 
           <div className="flex justify-center gap-6 mb-8">
-             <a href="https://github.com/prabal-goyal" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-white transition-colors"><Github size={32} /></a>
-             <a href="https://linkedin.com/in/prabal-goyal" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-white transition-colors"><Linkedin size={32} /></a>
-             <a href="mailto:prabal30goyal@gmail.com" className="text-gray-400 hover:text-white transition-colors"><Mail size={32} /></a>
+            <a href="https://github.com/prabal-goyal" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-white transition-colors"><Github size={32} /></a>
+            <a href="https://linkedin.com/in/prabal-goyal" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-white transition-colors"><Linkedin size={32} /></a>
+            <a href="mailto:prabal30goyal@gmail.com" className="text-gray-400 hover:text-white transition-colors"><Mail size={32} /></a>
           </div>
 
           <div className="text-center">
@@ -101,7 +101,7 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ gameCtx }) => {
   if (gameState === GameState.PAUSED && activeModal) {
     const isSkill = activeModal.category === 'SKILL';
     const isProject = activeModal.category === 'PROJECT';
-    
+
     let borderColor = 'border-white';
     if (isSkill) borderColor = 'border-pink-500';
     else if (isProject) borderColor = 'border-emerald-500';
@@ -110,23 +110,23 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ gameCtx }) => {
     return (
       <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
         <div className={`relative w-full max-w-lg bg-slate-900 border-2 ${borderColor} rounded-lg shadow-2xl transform scale-100 transition-all`}>
-          <button 
+          <button
             onClick={() => setActiveModal(null)}
             className="absolute -top-3 -right-3 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg z-10"
           >
             <X size={20} />
           </button>
-          
+
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
               <span className={`text-xs font-bold px-2 py-1 rounded ${isSkill ? 'bg-pink-900 text-pink-200' : isProject ? 'bg-emerald-900 text-emerald-200' : 'bg-violet-900 text-violet-200'}`}>
                 {activeModal.category}
               </span>
             </div>
-            
+
             <h3 className="text-2xl font-bold text-white mb-2">{activeModal.title}</h3>
             <p className="text-gray-300 leading-relaxed mb-4">{activeModal.description}</p>
-            
+
             {activeModal.tags && (
               <div className="flex flex-wrap gap-2 mb-4">
                 {activeModal.tags.map(tag => (
@@ -138,18 +138,18 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ gameCtx }) => {
             )}
 
             {activeModal.link && (
-              <a 
-                href={activeModal.link} 
-                target="_blank" 
+              <a
+                href={activeModal.link}
+                target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors font-medium"
               >
                 View Artifact <ExternalLink size={16} />
               </a>
             )}
-            
+
             <div className="mt-6 pt-4 border-t border-slate-800 text-center">
-              <button 
+              <button
                 onClick={() => setActiveModal(null)}
                 className="text-gray-500 hover:text-white text-sm animate-pulse"
               >
@@ -171,7 +171,7 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ gameCtx }) => {
           {score.toString().padStart(6, '0')}
         </div>
       </div>
-      
+
       <div className="hidden md:block bg-slate-900/80 border border-slate-700 rounded p-2 backdrop-blur">
         <div className="text-xs text-gray-400 uppercase tracking-widest text-right">System</div>
         <div className="text-sm font-mono text-green-400 leading-none mt-1">
