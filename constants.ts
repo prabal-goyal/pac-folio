@@ -45,34 +45,34 @@ export const COLORS = {
   PORTAL: '#06b6d4', // Cyan 500
 };
 
-// Content mapped to specific coordinates would be complex, 
-// so we'll just queue them up. When a user hits a type, we pop from the list.
+// Resume Content mapped to game nodes
 export const CONTENT_DATA: ContentItem[] = [
   {
-    id: 'skill-tech',
-    title: 'Core Technologies',
+    id: 'skill-core',
+    title: 'TECH ARSENAL (Skills)',
     category: 'SKILL',
-    description: 'Proficient in modern web stacks including React, Next.js, TypeScript, and Node.js. Experienced with Tailwind CSS for styling and Framer Motion for animations.',
-    tags: ['React', 'Next.js', 'TypeScript', 'Node.js']
+    description: 'Equipped with the latest frontend weaponry: React.js, Next.js, and TypeScript. Rendering optimized via TanStack Table & Virtualization. UI styled with Tailwind CSS & Shadcn UI.',
+    tags: ['Next.js', 'React', 'TypeScript', 'TanStack', 'Framer Motion']
   },
   {
-    id: 'exp-senior',
-    title: 'Senior Frontend Engineer',
+    id: 'exp-voxturr-sde',
+    title: 'MISSION: SDE @ VOXTURR',
     category: 'EXPERIENCE',
-    description: 'Led a team of 5 developers in rebuilding a legacy e-commerce platform. Improved site performance by 40% and implemented a comprehensive design system.',
-    tags: ['Leadership', 'Architecture', 'Performance']
+    description: 'Architected a reusable state-driven form system adopted across 5 workflows, cutting build time by 25%. Reduced large dataset render times from 3s to <300ms. Centralized RBAC for zero post-deployment access bugs.',
+    tags: ['Performance', 'Architecture', 'React Context', 'RBAC']
   },
   {
-    id: 'proj-saas',
-    title: 'AI Analytics SaaS',
-    category: 'PROJECT',
-    description: 'A real-time dashboard visualizing complex datasets using Recharts and D3. Integrated with Gemini API for natural language data querying.',
-    link: 'https://github.com/example/ai-saas'
+    id: 'exp-voxturr-intern',
+    title: 'MISSION: INTERN @ VOXTURR',
+    category: 'EXPERIENCE',
+    description: 'Integrated Django REST APIs for dynamic pagination. Fortified forms with Google reCAPTCHA v3 & Zod, reducing spam by 35%. Optimized render bottlenecks using React DevTools profiling.',
+    tags: ['API Integration', 'Security', 'Optimization']
   },
   {
-    id: 'proj-game',
-    title: 'Web3 Trading Card Game',
+    id: 'proj-movie',
+    title: 'PROJECT: MOVIE DISCOVERY',
     category: 'PROJECT',
-    description: 'Developed the frontend interface for a blockchain-based TCG. Handled wallet connections, smart contract interactions, and WebGL assets.',
+    description: 'A semantic search engine delivering sub-second results via Cosine Similarity. Features an automated data ingestion pipeline with 99%+ reliability and smooth Framer Motion interactions.',
+    link: 'https://github.com/prabal-goyal/movie-discovery'
   }
 ];

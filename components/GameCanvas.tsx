@@ -51,6 +51,42 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
   const mazeRef = useRef<number[][]>(JSON.parse(JSON.stringify(MAZE_LAYOUT)));
   const contentQueueRef = useRef([...CONTENT_DATA]);
   
+  // Handle Reset when GameState changes to START
+  useEffect(() => {
+    if (gameCtx.gameState === GameState.START) {
+      // 1. Reset Maze (restore dots)
+      mazeRef.current = JSON.parse(JSON.stringify(MAZE_LAYOUT));
+      // 2. Reset Content Queue
+      contentQueueRef.current = [...CONTENT_DATA];
+      // 3. Reset Player
+      playerRef.current = {
+        pos: { 
+          x: TILE_SIZE * PLAYER_START_GRID.c + TILE_SIZE / 2, 
+          y: TILE_SIZE * PLAYER_START_GRID.r + TILE_SIZE / 2 
+        }, 
+        velocity: { x: 0, y: 0 },
+        radius: TILE_SIZE * 0.4,
+        speed: PLAYER_SPEED,
+        direction: 'NONE',
+        nextDirection: 'NONE'
+      };
+      // 4. Reset Ghosts
+      ghostsRef.current = GHOST_CONFIG.map(cfg => ({
+        id: cfg.id,
+        color: cfg.color,
+        speed: GHOST_SPEED,
+        direction: 'RIGHT',
+        pos: {
+          x: TILE_SIZE * cfg.startGrid.c + TILE_SIZE / 2,
+          y: TILE_SIZE * cfg.startGrid.r + TILE_SIZE / 2
+        }
+      }));
+      
+      // Force a redraw
+      draw();
+    }
+  }, [gameCtx.gameState]);
+
   // Controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -89,13 +125,6 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [gameCtx.gameState]);
-
-  // Handle Resume logic in effect
-  useEffect(() => {
-    if (gameCtx.gameState === GameState.PLAYING && gameCtx.activeModal === null) {
-      // Just resumed, ensure clean state if needed
-    }
-  }, [gameCtx.gameState, gameCtx.activeModal]);
 
   // Helper: Check wall collision
   const isWall = (c: number, r: number) => {
@@ -304,11 +333,12 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
           gameCtx.setActiveModal(item);
           gameCtx.markCollected(item.id);
         } else {
+           // Fallback if we have more nodes on map than content
            gameCtx.setActiveModal({
              id: 'bonus',
-             title: 'Bonus Data',
+             title: 'BONUS DATA',
              category: category as any,
-             description: 'You found extra data bytes! Keep exploring.',
+             description: 'Encrypted data fragment found. Keep searching for the main artifacts.',
            });
         }
       }

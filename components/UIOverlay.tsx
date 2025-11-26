@@ -1,5 +1,5 @@
 import React from 'react';
-import { GameContextType, GameState, ContentItem } from '../types';
+import { GameContextType, GameState } from '../types';
 import { Play, RotateCcw, X, ExternalLink, Mail, Github, Linkedin } from 'lucide-react';
 
 interface UIOverlayProps {
@@ -12,7 +12,8 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ gameCtx }) => {
     setGameState, 
     score, 
     activeModal, 
-    setActiveModal 
+    setActiveModal,
+    resetGame
   } = gameCtx;
 
   if (gameState === GameState.START) {
@@ -78,14 +79,14 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ gameCtx }) => {
           </form>
 
           <div className="flex justify-center gap-6 mb-8">
-             <a href="#" className="text-gray-400 hover:text-white transition-colors"><Github size={32} /></a>
-             <a href="#" className="text-gray-400 hover:text-white transition-colors"><Linkedin size={32} /></a>
-             <a href="#" className="text-gray-400 hover:text-white transition-colors"><Mail size={32} /></a>
+             <a href="https://github.com/prabal-goyal" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-white transition-colors"><Github size={32} /></a>
+             <a href="https://linkedin.com/in/prabal-goyal" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-white transition-colors"><Linkedin size={32} /></a>
+             <a href="mailto:prabal30goyal@gmail.com" className="text-gray-400 hover:text-white transition-colors"><Mail size={32} /></a>
           </div>
 
           <div className="text-center">
             <button
-              onClick={() => window.location.reload()}
+              onClick={resetGame}
               className="flex items-center justify-center gap-2 mx-auto text-yellow-400 hover:text-yellow-300 font-retro text-sm"
             >
               <RotateCcw size={16} /> RESTART GAME
@@ -130,7 +131,7 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ gameCtx }) => {
               <div className="flex flex-wrap gap-2 mb-4">
                 {activeModal.tags.map(tag => (
                   <span key={tag} className="text-xs bg-slate-800 text-gray-400 border border-slate-700 px-2 py-1 rounded">
-                    #{tag}
+                    {tag}
                   </span>
                 ))}
               </div>
@@ -143,7 +144,7 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ gameCtx }) => {
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors font-medium"
               >
-                View Project <ExternalLink size={16} />
+                View Artifact <ExternalLink size={16} />
               </a>
             )}
             

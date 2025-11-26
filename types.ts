@@ -56,4 +56,5 @@ export interface GameContextType {
   activeModal: ContentItem | null;
   setActiveModal: (item: ContentItem | null) => void;
   allItemsCollected: boolean;
+  resetGame: () => void;
 }

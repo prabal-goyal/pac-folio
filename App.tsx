@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import GameCanvas from './components/GameCanvas';
 import UIOverlay from './components/UIOverlay';
 import { GameState, GameContextType, ContentItem } from './types';
-import { CONTENT_DATA } from './constants';
 
 function App() {
   const [gameState, setGameState] = useState<GameState>(GameState.START);
@@ -10,11 +9,8 @@ function App() {
   const [collectedItems, setCollectedItems] = useState<string[]>([]);
   const [activeModal, setActiveModal] = useState<ContentItem | null>(null);
 
-  // Derive "allItemsCollected" from content data length vs collected length
-  // Note: In a real game, constants might have more items than map nodes. 
-  // For this logic, we assume victory when the map is cleared of special nodes. 
-  // However, simpler logic: Have we triggered all main content?
-  // Let's assume we need to collect at least 3 items to open portal
+  // We need at least 3 items to open the portal based on the map layout (1 Skill, 2 Exp, 2 Proj available)
+  // Let's require 3 unique content pieces to be found.
   const allItemsCollected = collectedItems.length >= 3; 
 
   // When opening a modal, pause the game
@@ -26,6 +22,13 @@ function App() {
     }
   }, [activeModal]);
 
+  const resetGame = () => {
+    setScore(0);
+    setCollectedItems([]);
+    setActiveModal(null);
+    setGameState(GameState.START);
+  };
+
   const gameCtx: GameContextType = {
     gameState,
     setGameState,
@@ -35,7 +38,8 @@ function App() {
     markCollected: (id) => setCollectedItems(prev => [...prev, id]),
     activeModal,
     setActiveModal,
-    allItemsCollected
+    allItemsCollected,
+    resetGame
   };
 
   return (
