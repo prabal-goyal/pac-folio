@@ -1,8 +1,7 @@
 import { useEffect, useRef } from 'react';
 
 export const useGameLoop = (
-  callback: (deltaTime: number) => void,
-  isPaused: boolean
+  callback: (deltaTime: number) => void
 ) => {
   const requestRef = useRef<number | null>(null);
   const previousTimeRef = useRef<number | undefined>(undefined);
@@ -20,23 +19,15 @@ export const useGameLoop = (
         callbackRef.current(deltaTime);
       }
       previousTimeRef.current = time;
-      
       requestRef.current = requestAnimationFrame(animate);
     };
 
-    if (!isPaused) {
-      requestRef.current = requestAnimationFrame(animate);
-    } else {
-      previousTimeRef.current = undefined; // Reset delta timer
-      if (requestRef.current !== null) {
-        cancelAnimationFrame(requestRef.current);
-      }
-    }
+    requestRef.current = requestAnimationFrame(animate);
 
     return () => {
       if (requestRef.current !== null) {
         cancelAnimationFrame(requestRef.current);
       }
     };
-  }, [isPaused]);
+  }, []);
 };

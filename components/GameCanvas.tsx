@@ -42,7 +42,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
       direction: 'RIGHT', // Initial direction
       pos: {
         x: TILE_SIZE * cfg.startGrid.c + TILE_SIZE / 2,
-        y: TILE_SIZE * cfg.startGrid.r + TILE_SIZE / 2
+        y: TILE_SIZE * cfg.startGrid.r + TILE_SIZE / 2 
       }
     }))
   );
@@ -81,14 +81,6 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
           y: TILE_SIZE * cfg.startGrid.r + TILE_SIZE / 2
         }
       }));
-      
-      // Force a redraw
-      if (canvasRef.current && containerRef.current) {
-         // Ensure size is correct before drawing
-         canvasRef.current.width = containerRef.current.clientWidth;
-         canvasRef.current.height = containerRef.current.clientHeight;
-         draw();
-      }
     }
   }, [gameCtx.gameState]);
 
@@ -101,6 +93,14 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
         }
         return;
       }
+      
+      // Allow Start game with generic key press if in Start screen? 
+      // Handled by button in UIOverlay, but good for UX:
+      if (gameCtx.gameState === GameState.START && (e.key === 'Enter' || e.code === 'Space')) {
+          gameCtx.setGameState(GameState.PLAYING);
+          return;
+      }
+
       if (gameCtx.gameState !== GameState.PLAYING) return;
 
       switch(e.key) {
@@ -168,7 +168,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
         x: TILE_SIZE * cfg.startGrid.c + TILE_SIZE / 2,
         y: TILE_SIZE * cfg.startGrid.r + TILE_SIZE / 2
       };
-      ghost.direction = 'RIGHT'; // Or random
+      ghost.direction = 'RIGHT'; 
     });
   };
 
@@ -204,6 +204,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
   };
 
   const update = useCallback((_dt: number) => {
+    // Only update physics if Playing
     if (gameCtx.gameState !== GameState.PLAYING) return;
 
     // --- PLAYER UPDATE ---
@@ -275,7 +276,6 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
         const nonReverseDirs = validDirs.filter(d => d !== opposite[g.direction]);
         
         if (nonReverseDirs.length > 0) {
-          // 20% chance to turn if possible, otherwise keep going (unless hit wall)
           // Simple Patrol: Pick random valid direction
           g.direction = nonReverseDirs[Math.floor(Math.random() * nonReverseDirs.length)];
         } else if (validDirs.length > 0) {
@@ -299,7 +299,6 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
       if (distToPlayer < (p.radius + 12)) { // 12 approx ghost radius
          gameCtx.addScore(-500); // Penalty
          resetPositions();
-         // Could trigger a brief "Ouch" state here
       }
     });
 
@@ -338,7 +337,6 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
           gameCtx.setActiveModal(item);
           gameCtx.markCollected(item.id);
         } else {
-           // Fallback if we have more nodes on map than content
            gameCtx.setActiveModal({
              id: 'bonus',
              title: 'BONUS DATA',
@@ -479,10 +477,11 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
     ctx.restore();
   }, [gameCtx.allItemsCollected]); 
 
+  // Game Loop - NOW RUNS ALWAYS
   useGameLoop((dt) => {
     update(dt);
     draw();
-  }, gameCtx.gameState === GameState.PAUSED || gameCtx.gameState === GameState.START || gameCtx.gameState === GameState.GAMEOVER);
+  });
 
   // Resize handler
   useEffect(() => {
@@ -490,6 +489,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameCtx }) => {
       if (containerRef.current && canvasRef.current) {
         canvasRef.current.width = containerRef.current.clientWidth;
         canvasRef.current.height = containerRef.current.clientHeight;
+        // Trigger one draw immediately on resize
         draw();
       }
     };
